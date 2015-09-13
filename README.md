@@ -1,62 +1,118 @@
-# Homework---Creational-Patterns
+#Abstract Factory
 
-### Singleton
+###Abstract Factory 
+е създаващ шаблон за дизайн, който се използва в обектно-ориентираното програмиране.
+Фабриката е средство за създаване на обекти. Целта на този шаблон за дизайн е да изолира създаването на обектите от тяхното използване.
 
-Сингълтън е creational pattern (шаблон). Представлява единичен статичен клас, който позволява да се създаде само една инстанция до него и дава прост и лесен начин да бъде достъпена. Употребява се за глобални и единствени компоненти от приложението.Сингълтън нарушава част от принципите на ООП и SOLID, затова се избягва да се използва, ако наистина не е наложително. Често е използван за файлови системи, логери, за следене на резултати в игри например.Предимствата на шаблона пред статичните обекти обаче са доста:
-–         предаване на обектите като параметри във функциии
-–         създаване и на инстанционни, а не само статични членове в класа
-–         контрол върху създаването на инстанции в зависимост от модификатора за достъп на конструктора
-–         по-голям контрол върху поведението
-–         имплементация на интерфейс.
-Три са нещата, необходими за постигането на Singleton:
--         статично поле на класа
--         private конструктор
--         public метод/статично property, коeто връща статичното поле.
+Абстрактната фабрика капсулира група от методи Фабрика имащи близко предназначение. Клиентският код създава конкретна имплементация на абстрактната фабрика, след това използва основния интерфейс за да създава конкренти обекти. Клиентът не е задължен да знае коя от тези фабрики е създала конкретния обект, защото той използва само основния интерфейс към създадените обекти.
 
-### Имплементация:
+Този шаблон позволява замяната на конкретни класове, дори по време на изпълнение, без да е нужна промяна на кода, който ги използва. Това обаче е за сметка на на допълнително усложняване на кода, което не е много желателно.
 
-public class Singleton
-{
-   private static Singleton instance;
- 
-   private Singleton() {}
- 
-   public static Singleton Instance
-   {
-      get
-      {
-         if (instance == null)
-         {
-            instance = new Singleton();
-         }
-         return instance;
-      }
-   }
-}
+using System;
 
-При този вид имплементация обаче може да има проблеми, ако няколко нишки едновременно искат да достъпят инстанцията на обекта. При тях се създава само инстанция за нишката, която е достъпила първа инстанцията. Това може да се избегне чрез следната имплементация.
+  class MainApp
+  {
+    public static void Main()
+    {
+      AbstractFactory factory1 = new ConcreteFactory1();
+      Client c1 = new Client(factory1);
+      c1.Run();
 
-public sealed class Singleton
-{
-   private static volatile Singleton instance;
-   private static object syncRoot = new Object();
- 
-   private Singleton() {}
- 
-   public static Singleton Instance
-   {
-      get
-      {
-         if (instance == null)
-         {
-            lock (syncRoot)
-            {
-               if (instance == null)
-                  instance = new Singleton();
-            }
-         }
- 
-         return instance;
-      }
-   }
-}
+      AbstractFactory factory2 = new ConcreteFactory2();
+      Client c2 = new Client(factory2);
+      c2.Run();
+
+      Console.Read();
+    }
+  }
+
+  // "AbstractFactory" 
+  abstract class AbstractFactory
+  {
+    public abstract AbstractProductA CreateProductA();
+    public abstract AbstractProductB CreateProductB();
+  }
+
+  // "ConcreteFactory1" 
+  class ConcreteFactory1 : AbstractFactory
+  {
+    public override AbstractProductA CreateProductA()
+    {
+      return new ProductA1();
+    }
+    public override AbstractProductB CreateProductB()
+    {
+      return new ProductB1();
+    }
+  }
+
+  // "ConcreteFactory2" 
+  class ConcreteFactory2 : AbstractFactory
+  {
+    public override AbstractProductA CreateProductA()
+    {
+      return new ProductA2();
+    }
+    public override AbstractProductB CreateProductB()
+    {
+      return new ProductB2();
+    }
+  }
+
+  // "AbstractProductA" 
+  abstract class AbstractProductA
+  {
+  }
+
+  // "AbstractProductB" 
+  abstract class AbstractProductB
+  {
+    public abstract void Interact(AbstractProductA a);
+  }
+
+  // "ProductA1" 
+  class ProductA1 : AbstractProductA
+  {
+  }
+
+  // "ProductB1" 
+  class ProductB1 : AbstractProductB
+  {
+    public override void Interact(AbstractProductA a)
+    {
+      Console.WriteLine(this.GetType().Name + " interacts with " + a.GetType().Name);
+    }
+  }
+
+  // "ProductA2" 
+  class ProductA2 : AbstractProductA
+  {
+  }
+
+  // "ProductB2" 
+  class ProductB2 : AbstractProductB
+  {
+    public override void Interact(AbstractProductA a)
+    {
+      Console.WriteLine(this.GetType().Name + " interacts with " + a.GetType().Name);
+    }
+  }
+
+  // "Client" - the interaction environment of the products 
+  class Client
+  {
+    private AbstractProductA AbstractProductA;
+    private AbstractProductB AbstractProductB;
+
+    // Constructor 
+    public Client(AbstractFactory factory)
+    {
+      AbstractProductB = factory.CreateProductB();
+      AbstractProductA = factory.CreateProductA();
+    }
+
+    public void Run()
+    {
+      AbstractProductB.Interact(AbstractProductA);
+    }
+  }
